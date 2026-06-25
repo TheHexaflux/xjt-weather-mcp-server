@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "description": "基于高德地图天气 API 的 MCP Server",
   "type": "module",
-  "bin": "./dist/server.js",
+  "bin": {
+    "xjt-weather-mcp": "dist/server.js"
+  },
   "files": [
     "dist",
     "README.md",
