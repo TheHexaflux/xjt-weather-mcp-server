@@ -208,7 +208,7 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   // 日志必须走 stderr，stdout 留给 MCP 协议通信
-  console.error('@xjt/xjt-weather-mcp 已通过 stdio 运行（数据源：高德天气）');
+  console.error('@xjt-demo/xjt-weather-mcp 已通过 stdio 运行（数据源：高德天气）');
 }
 
 main().catch((error) => {

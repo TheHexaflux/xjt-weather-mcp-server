@@ -1,12 +1,13 @@
 {
-  "name": "@xjt/xjt-weather-mcp",
+  "name": "@xjt-demo/xjt-weather-mcp",
   "version": "0.1.0",
   "description": "基于高德地图天气 API 的 MCP Server",
   "type": "module",
   "bin": "./dist/server.js",
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "dev": "tsx src/server.ts",

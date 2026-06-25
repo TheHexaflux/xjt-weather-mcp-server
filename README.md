@@ -1,4 +1,4 @@
-# @xjt/xjt-weather-mcp
+# @xjt-demo/xjt-weather-mcp
 
 基于 [MCP 官方 Weather Server Quickstart](https://github.com/modelcontextprotocol/typescript-sdk/blob/main/examples/server-quickstart/src/index.ts) 实现的天气 MCP Server，数据源为[高德地图天气查询 API](https://lbs.amap.com/api/webservice/guide/api/weatherinfo/)，可通过 `npx` 直接运行，无需本地安装。
 
@@ -35,7 +35,7 @@
   "mcpServers": {
     "xjtWeather": {
       "command": "npx",
-      "args": ["-y", "@xjt/xjt-weather-mcp"],
+      "args": ["-y", "@xjt-demo/xjt-weather-mcp"],
       "env": {
         "AMAP_API_KEY": "你的高德 Web 服务 Key"
       }
@@ -51,7 +51,7 @@
   "mcpServers": {
     "xjtWeatherAlpha": {
       "command": "npx",
-      "args": ["-y", "@xjt/xjt-weather-mcp@alpha"],
+      "args": ["-y", "@xjt-demo/xjt-weather-mcp@alpha"],
       "env": {
         "AMAP_API_KEY": "你的高德 Web 服务 Key"
       }
