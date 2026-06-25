@@ -6,6 +6,7 @@
  * 数据源：高德 Web 服务「天气查询」API
  * @see https://lbs.amap.com/api/webservice/guide/api/weatherinfo/
  */
+import { createRequire } from 'node:module';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
@@ -14,14 +15,17 @@ import type {
   AmapWeatherResponse,
   ForecastCast,
   LiveWeather
-} from './types/amap-weather.js';
+} from './types/amap-weather.ts';
+
+const require = createRequire(import.meta.url);
+const { version: PACKAGE_VERSION } = require('../package.json') as { version: string };
 
 /** 高德天气查询接口 */
 const AMAP_WEATHER_API = 'https://restapi.amap.com/v3/weather/weatherInfo';
 
 const server = new McpServer({
   name: 'xjt-weather-mcp',
-  version: '0.1.0'
+  version: PACKAGE_VERSION
 });
 
 /** 从环境变量读取 Key，需在 MCP 配置的 env 中设置 AMAP_API_KEY */
