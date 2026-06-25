@@ -1,6 +1,6 @@
 {
   "name": "@xjt-demo/xjt-weather-mcp",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "基于高德地图天气 API 的 MCP Server",
   "type": "module",
   "packageManager": "pnpm@10.22.0",
