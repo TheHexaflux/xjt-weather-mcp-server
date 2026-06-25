@@ -1,7 +1,7 @@
 {
   "name": "@xjt/xjt-weather-mcp",
   "version": "0.1.0",
-  "description": "基于高德地图天气 API 的 MCP Server，可通过 npx 直接运行。",
+  "description": "基于高德地图天气 API 的 MCP Server",
   "type": "module",
   "bin": "./dist/server.js",
   "files": [
@@ -34,7 +34,8 @@
     "typescript": "^5.9.3"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18",
+    "pnpm": ">=10"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org",
