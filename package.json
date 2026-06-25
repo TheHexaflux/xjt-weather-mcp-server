@@ -23,6 +23,14 @@
   ],
   "author": "xjt",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheHexaflux/xjt-weather-mcp-server.git"
+  },
+  "homepage": "https://github.com/TheHexaflux/xjt-weather-mcp-server#readme",
+  "bugs": {
+    "url": "https://github.com/TheHexaflux/xjt-weather-mcp-server/issues"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.21.3",
     "zod": "^4.2.0"
