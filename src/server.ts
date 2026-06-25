@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * 高德天气 MCP Server
  *

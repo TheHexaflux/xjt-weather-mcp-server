@@ -6,8 +6,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
 const projectRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
-const serverEntry = join(projectRoot, 'src/server.ts');
-const tsxBin = join(projectRoot, 'node_modules/.bin/tsx');
+const serverEntry = join(projectRoot, 'dist/server.js');
 
 dotenv.config({ path: join(projectRoot, '.env') });
 
@@ -17,7 +16,7 @@ async function main() {
   console.log(`API Key: ${apiKey ? '已配置' : '未配置，请在.env文件通过AMAP_API_KEY=xxx形式设置你的密钥'}`);
 
   const transport = new StdioClientTransport({
-    command: tsxBin,
+    command: process.execPath,
     args: [serverEntry],
     env: process.env as Record<string, string>,
     stderr: 'pipe',

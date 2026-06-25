@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "基于高德地图天气 API 的 MCP Server",
   "type": "module",
+  "packageManager": "pnpm@10.22.0",
   "bin": {
     "xjt-weather-mcp": "dist/server.js"
   },
@@ -12,11 +13,11 @@
     "LICENSE"
   ],
   "scripts": {
-    "dev": "tsx src/server.ts",
-    "build": "tsc -p tsconfig.json",
+    "dev": "vite build -w",
+    "build": "vite build",
     "prepublishOnly": "npm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.scripts.json",
-    "test:mcp": "tsx scripts/test-mcp.ts",
+    "test:mcp": "vite build && tsx scripts/test-mcp.ts",
     "release": "release-it",
     "release:alpha": "release-it --preRelease=alpha"
   },
@@ -46,7 +47,8 @@
     "dotenv": "^17.4.2",
     "release-it": "^20.2.0",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^6.4.1"
   },
   "engines": {
     "node": ">=18",
