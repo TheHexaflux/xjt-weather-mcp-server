@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- 支持城市名称查询天气，`city` 参数可传入城市名或 6 位 adcode。
+
 ## [1.0.0] - 2026-06-25
 
 ### Added
