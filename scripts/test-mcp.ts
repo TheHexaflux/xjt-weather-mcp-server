@@ -32,11 +32,16 @@ async function main() {
     const { tools } = await client.listTools();
     console.log(`✓ 工具列表 (${tools.length}): ${tools.map((t) => t.name).join(', ')}`);
 
-    for (const toolName of ['get-weather-live', 'get-weather-forecast'] as const) {
-      console.log(`\n--- 调用 ${toolName} (city=310100 上海) ---`);
+    for (const [toolName, city] of [
+      ['get-weather-live', '310100'],
+      ['get-weather-forecast', '310100'],
+      ['get-weather-live', '上海'],
+      ['get-weather-forecast', '深圳']
+    ] as const) {
+      console.log(`\n--- 调用 ${toolName} (city=${city}) ---`);
       const result = await client.callTool({
         name: toolName,
-        arguments: { city: '310100' }
+        arguments: { city }
       });
 
       if (result.isError) {
@@ -53,13 +58,26 @@ async function main() {
       }
     }
 
-    console.log('\n--- 调用 get-weather-live (无效 city=abc) ---');
+    console.log('\n--- 调用 get-weather-live (无效 city=xyznotacity) ---');
     const invalidResult = await client.callTool({
       name: 'get-weather-live',
-      arguments: { city: 'abc' }
+      arguments: { city: 'xyznotacity' }
     });
-    if (invalidResult.isError) {
-      console.log('✓ 参数校验正常拦截无效 adcode');
+    const invalidContent = Array.isArray(invalidResult.content) ? invalidResult.content : [];
+    const invalidText = invalidContent.find((item) => item.type === 'text')?.text ?? '';
+    if (!invalidResult.isError && invalidText.includes('未找到城市')) {
+      console.log('✓ 无效城市名正常返回友好提示');
+    } else {
+      console.log('✗ 预期应提示未找到城市，但未返回预期信息');
+    }
+
+    console.log('\n--- 调用 get-weather-live (空 city) ---');
+    const emptyResult = await client.callTool({
+      name: 'get-weather-live',
+      arguments: { city: '   ' }
+    });
+    if (emptyResult.isError) {
+      console.log('✓ 空城市名正常被参数校验拦截');
     } else {
       console.log('✗ 预期应校验失败，但未报错');
     }

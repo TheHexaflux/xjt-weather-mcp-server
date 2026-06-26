@@ -24,7 +24,7 @@
 | `get-weather-live` | 查询指定城市的实况天气 |
 | `get-weather-forecast` | 查询指定城市的天气预报（当天 + 未来 3 天） |
 
-两个工具均接受 `city` 参数：6 位数字 adcode。
+两个工具均接受 `city` 参数：支持**城市名称**（如 `上海`、`北京东城`）或 **6 位 adcode**（如 `310100`）。
 
 ## Cursor / Claude 配置
 

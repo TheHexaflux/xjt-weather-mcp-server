@@ -9,6 +9,7 @@ import { createRequire } from 'node:module';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
+import type { AmapDistrictResponse } from './types/amap-district.ts';
 import type {
   AmapWeatherExtensions,
   AmapWeatherResponse,
@@ -21,6 +22,8 @@ const { version: PACKAGE_VERSION } = require('../package.json') as { version: st
 
 /** 高德天气查询接口 */
 const AMAP_WEATHER_API = 'https://restapi.amap.com/v3/weather/weatherInfo';
+/** 高德行政区域查询接口（城市名 → adcode） */
+const AMAP_DISTRICT_API = 'https://restapi.amap.com/v3/config/district';
 
 const server = new McpServer({
   name: 'xjt-weather-mcp',
@@ -77,8 +80,79 @@ async function fetchAmapWeather(
 }
 
 /** 高德 API 成功时 status=1 且 infocode=10000 */
-function isAmapSuccess(data: AmapWeatherResponse): boolean {
+function isAmapSuccess(data: { status: string; infocode: string }): boolean {
   return data.status === '1' && data.infocode === '10000';
+}
+
+type ResolvedCity =
+  | { ok: true; adcode: string; name: string; input: string }
+  | { ok: false; message: string };
+
+/** 请求高德行政区域 API，将城市名解析为 adcode */
+async function fetchAmapDistrict(keywords: string): Promise<AmapDistrictResponse | null> {
+  const key = getAmapApiKey();
+  if (!key) {
+    return null;
+  }
+
+  const url = new URL(AMAP_DISTRICT_API);
+  url.searchParams.set('key', key);
+  url.searchParams.set('keywords', keywords);
+  url.searchParams.set('subdistrict', '0');
+  url.searchParams.set('extensions', 'base');
+  url.searchParams.set('output', 'JSON');
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP 错误！状态码: ${response.status}`);
+    }
+    return (await response.json()) as AmapDistrictResponse;
+  } catch (error) {
+    console.error('高德行政区域请求出错:', error);
+    return null;
+  }
+}
+
+/** 将城市名或 adcode 统一解析为天气查询所需的 adcode */
+async function resolveCityInput(input: string): Promise<ResolvedCity> {
+  const trimmed = input.trim();
+
+  if (/^\d{6}$/.test(trimmed)) {
+    return { ok: true, adcode: trimmed, name: trimmed, input: trimmed };
+  }
+
+  const data = await fetchAmapDistrict(trimmed);
+  if (!data) {
+    return { ok: false, message: '城市解析失败，请稍后重试' };
+  }
+
+  if (!isAmapSuccess(data)) {
+    return { ok: false, message: `城市解析失败：${data.info}（${data.infocode}）` };
+  }
+
+  const district = data.districts?.[0];
+  if (!district?.adcode) {
+    return {
+      ok: false,
+      message: `未找到城市「${trimmed}」，请尝试完整名称或 6 位 adcode`
+    };
+  }
+
+  return {
+    ok: true,
+    adcode: district.adcode,
+    name: district.name || trimmed,
+    input: trimmed
+  };
+}
+
+/** 城市名解析后附加到结果开头的说明 */
+function formatCityHeader(resolved: Extract<ResolvedCity, { ok: true }>): string {
+  if (resolved.input === resolved.adcode) {
+    return '';
+  }
+  return `查询城市：${resolved.name}（adcode ${resolved.adcode}）\n\n`;
 }
 
 /** 将实况天气格式化为可读文本 */
@@ -104,24 +178,30 @@ function formatForecastCast(cast: ForecastCast): string {
   ].join('\n');
 }
 
-/** 高德 city 参数要求 6 位 adcode，见 https://lbs.amap.com/api/webservice/download */
+/** 支持城市名或 6 位 adcode，见 https://lbs.amap.com/api/webservice/download */
 const citySchema = z
   .string()
-  .regex(/^\d{6}$/)
-  .describe('城市 adcode，6 位数字（例如 110101 北京东城，310100 上海）');
+  .trim()
+  .min(1, '城市名称或 adcode 不能为空')
+  .describe('城市名称或 6 位 adcode（例如：上海、北京东城、310100）');
 
 // --- MCP Tools ---
 
 server.tool(
   'get-weather-live',
-  '获取指定城市的实况天气（高德地图）。',
+  '获取指定城市的实况天气（高德地图）。支持城市名或 6 位 adcode。',
   { city: citySchema },
   async ({ city }) => {
     if (!getAmapApiKey()) {
       return missingApiKeyResponse();
     }
 
-    const data = await fetchAmapWeather(city, 'base');
+    const resolved = await resolveCityInput(city);
+    if (!resolved.ok) {
+      return { content: [{ type: 'text', text: resolved.message }] };
+    }
+
+    const data = await fetchAmapWeather(resolved.adcode, 'base');
     if (!data) {
       return {
         content: [{ type: 'text', text: '获取实况天气失败，请稍后重试' }]
@@ -137,7 +217,9 @@ server.tool(
     const lives = data.lives || [];
     if (lives.length === 0) {
       return {
-        content: [{ type: 'text', text: `未找到 adcode ${city} 的实况天气数据` }]
+        content: [
+          { type: 'text', text: `未找到「${resolved.name}」的实况天气数据` }
+        ]
       };
     }
 
@@ -145,7 +227,7 @@ server.tool(
       content: [
         {
           type: 'text',
-          text: `实况天气：\n\n${lives.map(formatLiveWeather).join('\n\n')}`
+          text: `${formatCityHeader(resolved)}实况天气：\n\n${lives.map(formatLiveWeather).join('\n\n')}`
         }
       ]
     };
@@ -154,14 +236,19 @@ server.tool(
 
 server.tool(
   'get-weather-forecast',
-  '获取指定城市的天气预报，包含当天及未来 3 天（高德地图）。',
+  '获取指定城市的天气预报，包含当天及未来 3 天（高德地图）。支持城市名或 6 位 adcode。',
   { city: citySchema },
   async ({ city }) => {
     if (!getAmapApiKey()) {
       return missingApiKeyResponse();
     }
 
-    const data = await fetchAmapWeather(city, 'all');
+    const resolved = await resolveCityInput(city);
+    if (!resolved.ok) {
+      return { content: [{ type: 'text', text: resolved.message }] };
+    }
+
+    const data = await fetchAmapWeather(resolved.adcode, 'all');
     if (!data) {
       return {
         content: [{ type: 'text', text: '获取天气预报失败，请稍后重试' }]
@@ -177,14 +264,14 @@ server.tool(
     const forecasts = data.forecasts || [];
     if (forecasts.length === 0) {
       return {
-        content: [{ type: 'text', text: `未找到 adcode ${city} 的预报数据` }]
+        content: [{ type: 'text', text: `未找到「${resolved.name}」的预报数据` }]
       };
     }
 
     const formatted = forecasts.map((forecast) => {
       const casts = forecast.casts || [];
       const header = [
-        `${forecast.province || '未知'} ${forecast.city || '未知'}（${forecast.adcode || city}）`,
+        `${forecast.province || '未知'} ${forecast.city || '未知'}（${forecast.adcode || resolved.adcode}）`,
         `预报发布时间: ${forecast.reporttime || '未知'}`,
         ''
       ].join('\n');
@@ -199,7 +286,7 @@ server.tool(
       content: [
         {
           type: 'text',
-          text: `天气预报：\n\n${formatted.join('\n\n')}`
+          text: `${formatCityHeader(resolved)}天气预报：\n\n${formatted.join('\n\n')}`
         }
       ]
     };
