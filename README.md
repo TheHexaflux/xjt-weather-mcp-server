@@ -92,29 +92,58 @@ AMAP_API_KEY=你的Key npm run dev
 AMAP_API_KEY=你的Key npx @modelcontextprotocol/inspector node dist/server.js
 ```
 
-## 发布到 npm
+## 开发与发布流程
 
 本仓库采用 **main（稳定）+ alpha（预发布）** 双分支策略：
 
-| 分支 | 命令 | npm dist-tag | 版本示例 |
-|------|------|--------------|----------|
-| `alpha` | `pnpm release:alpha` | `alpha` | `1.2.0-alpha.0` |
-| `main` / `master` | `pnpm release:stable` | `latest` | `1.2.0` |
+| 分支 | 用途 | 发布命令 | npm dist-tag | 版本示例 |
+|------|------|----------|--------------|----------|
+| `alpha` | 新功能开发、预发布验证 | `pnpm release:alpha` | `alpha` | `1.2.0-alpha.0` |
+| `main` / `master` | 稳定版 | `pnpm release:stable` | `latest` | `1.2.0` |
+
+### 日常开发
+
+- **新功能、较大改动**：在 `alpha` 分支开发；需要对外验证时执行 `pnpm release:alpha`
+- **小 bugfix、文档修正**：可直接在 `main` 修改；发布后同步回 `alpha`（`git checkout alpha && git merge main`）
+
+### 发布路径
+
+**路径 A：新功能（走 alpha）**
 
 ```bash
 npm login
-
-# 1. 在 alpha 分支开发并发布预发布版
 git checkout alpha
+# 开发、提交后
 pnpm release:alpha
 
-# 2. 验证通过后合并到 main，发布正式版
+# 验证通过后
 git checkout main
 git merge alpha
 pnpm release:stable
 ```
 
-安装方式：
+**路径 B：紧急修复（走 main）**
+
+```bash
+git checkout main
+# 修复、提交后
+pnpm release:stable
+
+# 同步到 alpha
+git checkout alpha
+git merge main
+```
+
+### 版本号选择
+
+| 变更类型 | 版本 | 示例 |
+|----------|------|------|
+| Bug 修复 | PATCH | `1.1.0` → `1.1.1` |
+| 新功能（向后兼容） | MINOR | `1.1.0` → `1.2.0` |
+| 破坏性变更 | MAJOR | `1.x` → `2.0.0` |
+| 仅发布配置 / 文档 | 不发版 | — |
+
+### 用户安装
 
 ```bash
 npx @xjt-demo/xjt-weather-mcp              # latest（稳定版）
