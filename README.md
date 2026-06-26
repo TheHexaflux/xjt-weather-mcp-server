@@ -94,15 +94,34 @@ AMAP_API_KEY=你的Key npx @modelcontextprotocol/inspector node dist/server.js
 
 ## 发布到 npm
 
+本仓库采用 **main（稳定）+ alpha（预发布）** 双分支策略：
+
+| 分支 | 命令 | npm dist-tag | 版本示例 |
+|------|------|--------------|----------|
+| `alpha` | `pnpm release:alpha` | `alpha` | `1.2.0-alpha.0` |
+| `main` / `master` | `pnpm release:stable` | `latest` | `1.2.0` |
+
 ```bash
 npm login
-npm run build
-npm publish --tag alpha   # 预发布
-# 或
-npm publish             # 稳定版
+
+# 1. 在 alpha 分支开发并发布预发布版
+git checkout alpha
+pnpm release:alpha
+
+# 2. 验证通过后合并到 main，发布正式版
+git checkout main
+git merge alpha
+pnpm release:stable
 ```
 
-`prepublishOnly` 会在发布前自动执行 `npm run build`。
+安装方式：
+
+```bash
+npx @xjt-demo/xjt-weather-mcp              # latest（稳定版）
+npx @xjt-demo/xjt-weather-mcp@alpha        # alpha 预发布版
+```
+
+`release-it` 会在发布前自动执行 `typecheck` 与 `build`；仅在对应分支上才能发布（见 `.release-it.json` / `.release-it.alpha.json`）。
 
 ## License
 

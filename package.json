@@ -18,8 +18,9 @@
     "prepublishOnly": "npm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.scripts.json",
     "test:mcp": "vite build && tsx scripts/test-mcp.ts",
-    "release": "release-it",
-    "release:alpha": "release-it --preRelease=alpha"
+    "release": "release-it --config .release-it.json",
+    "release:stable": "release-it --config .release-it.json",
+    "release:alpha": "release-it --config .release-it.alpha.json --preRelease=alpha"
   },
   "keywords": [
     "mcp",

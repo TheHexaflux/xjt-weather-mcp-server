@@ -8,15 +8,16 @@
     "pushArgs": ["--follow-tags"],
     "requireCleanWorkingDir": true,
     "requireUpstream": false,
-    "requireBranch": ["main", "master"]
+    "requireBranch": ["alpha"]
   },
   "npm": {
     "publish": true,
-    "tag": "latest"
+    "tag": "alpha"
   },
   "github": {
     "release": true,
-    "releaseName": "v${version}"
+    "releaseName": "v${version}",
+    "prerelease": true
   },
   "hooks": {
     "before:init": ["pnpm run typecheck", "pnpm run build"]
